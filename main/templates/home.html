@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Currency Data</title>
+</head>
+<body>
+    <h1>All Currency Data</h1>
+
+    {% if grouped_data %}
+        {% for currency_pair, data in grouped_data.items %}
+            <h2>{{ currency_pair }}</h2>
+            <table border="1">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Open Price</th>
+                        <th>High Price</th>
+                        <th>Low Price</th>
+                        <th>Close Price</th>
+                        <th>Volume</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for entry in data %}
+                    <tr>
+                        <td>{{ entry.date }}</td>
+                        <td>{{ entry.open_price }}</td>
+                        <td>{{ entry.high_price }}</td>
+                        <td>{{ entry.low_price }}</td>
+                        <td>{{ entry.close_price }}</td>
+                        <td>{{ entry.volume }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6">No data available for this currency pair.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endfor %}
+    {% else %}
+        <p>No currency data available.</p>
+    {% endif %}
+</body>
+</html>
+
+
+
+
