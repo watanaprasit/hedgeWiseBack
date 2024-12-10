@@ -1,6 +1,6 @@
 # serializers.py
 from rest_framework import serializers
-from .models import CurrencyData, BrentCrudeData
+from .models import CurrencyData, BrentCrudeData, GeopoliticalNews
 
 class CurrencyDataSerializer(serializers.ModelSerializer):
     class Meta:
@@ -12,3 +12,8 @@ class BrentCrudeDataSerializer(serializers.ModelSerializer):
     class Meta:
         model = BrentCrudeData
         fields = ['date', 'price']
+        
+class GeopoliticalNewsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = GeopoliticalNews
+        fields = ['title', 'description', 'url', 'published_at', 'source']

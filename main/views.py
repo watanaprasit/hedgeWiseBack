@@ -1,12 +1,13 @@
 from django.shortcuts import render
 from datetime import timedelta
 from django.utils import timezone
-from .models import CurrencyData, BrentCrudeData
+from .models import CurrencyData, BrentCrudeData, GeopoliticalNews
 from itertools import groupby
 from decimal import Decimal, ROUND_DOWN
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from .serializers import CurrencyDataSerializer, BrentCrudeDataSerializer
+from .serializers import CurrencyDataSerializer, BrentCrudeDataSerializer, GeopoliticalNewsSerializer
+from django.db.models import Q
 
 # View for the homepage to display the historical data for all currency pairs
 def home(request):
@@ -78,6 +79,29 @@ def get_brent_crude_data(request):
 
     # Return the serialized data as JSON response
     return Response(serializer.data)
+
+
+@api_view(['GET'])
+def get_geopolitical_news(request):
+    # Define your search keywords for geopolitical risks
+    keywords = ['']
+
+    # Create a Q object for OR logic between the keywords
+    query = Q(title__icontains=keywords[0])
+    for keyword in keywords[1:]:
+        query |= Q(title__icontains=keyword)
+
+    # Retrieve the news data that matches the keywords
+    news_data = GeopoliticalNews.objects.filter(query).order_by('-published_at')[:20]  # Get the most recent 20 articles
+
+    # Serialize the data using GeopoliticalNewsSerializer
+    serializer = GeopoliticalNewsSerializer(news_data, many=True)
+
+    # Return the serialized data as JSON response
+    return Response(serializer.data)
+
+
+
 
 
 
