@@ -22,3 +22,11 @@ class CurrencyData(models.Model):
 
     def __str__(self):
         return f'{self.currency_pair} - {self.date}'
+    
+class BrentCrudeData(models.Model):
+    date = models.DateTimeField()
+    price = models.DecimalField(max_digits=12, decimal_places=3)
+
+    def __str__(self):
+        return f'Brent Crude Index - {self.date}'
+

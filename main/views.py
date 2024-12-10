@@ -1,12 +1,12 @@
 from django.shortcuts import render
 from datetime import timedelta
 from django.utils import timezone
-from .models import CurrencyData
+from .models import CurrencyData, BrentCrudeData
 from itertools import groupby
 from decimal import Decimal, ROUND_DOWN
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from .serializers import CurrencyDataSerializer  # Import the serializer
+from .serializers import CurrencyDataSerializer, BrentCrudeDataSerializer
 
 # View for the homepage to display the historical data for all currency pairs
 def home(request):
@@ -60,6 +60,25 @@ def get_currency_data(request):
 
     # Return the serialized data as JSON response
     return Response(serializer.data)
+
+@api_view(['GET'])
+def get_brent_crude_data(request):
+    # Get the past 30 days of data for Brent Crude Index
+    end_time = timezone.now()
+    start_time = end_time - timedelta(days=30)
+
+    # Retrieve data from the BrentCrudeData model
+    brent_crude_data = BrentCrudeData.objects.filter(
+        date__gte=start_time,
+        date__lte=end_time
+    ).order_by('date')  # Order by date
+
+    # Serialize the data
+    serializer = BrentCrudeDataSerializer(brent_crude_data, many=True)
+
+    # Return the serialized data as JSON response
+    return Response(serializer.data)
+
 
 
 
