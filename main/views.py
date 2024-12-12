@@ -96,29 +96,82 @@ def get_geopolitical_news(request):
 def add_production_row(request):
     if request.method == 'POST':
         try:
-            data = json.loads(request.body)  # Ensures JSON format
-            doc_ref = db.collection('ProductionForecasts').add(data)
-            return JsonResponse({"message": "Data added successfully", "id": doc_ref.id}, status=201)
+            # Load the data from the request
+            data = json.loads(request.body)
+
+            # Get the current counter value from Firestore
+            counter_ref = db.collection('counters').document('production_forecasts_counter')
+            doc = counter_ref.get()
+
+            if doc.exists:
+                # Get the current ID, increment it, and update the counter document
+                current_id = doc.to_dict()['current_id']
+                new_id = current_id + 1  # Increment the ID
+
+                # Update the counter document with the new ID
+                counter_ref.update({
+                    'current_id': new_id
+                })
+
+                # Generate the custom document ID with the 'PF-' prefix
+                custom_id = f"PF-{new_id:03d}"  # Format as PF-001, PF-002, etc.
+
+                # Add the document with the custom ID to the ProductionForecasts collection
+                doc_ref = db.collection('ProductionForecasts').document(custom_id).set(data)
+                
+                return JsonResponse({"message": "Data added successfully", "id": custom_id}, status=201)
+            else:
+                return JsonResponse({"error": "Counter document not found"}, status=400)
         except json.JSONDecodeError:
             return JsonResponse({"error": "Invalid JSON format"}, status=400)
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=400)
-    print(request.body)
-    return JsonResponse({"message": "Only POST method is allowed"}, status=405)
     
+    return JsonResponse({"message": "Only POST method is allowed"}, status=405)
 
 
-@csrf_exempt
-def delete_production_row(request, doc_id):
+@csrf_exempt  # Allow DELETE method
+def delete_production_forecast(request, document_id):
     if request.method == 'DELETE':
         try:
-            doc_ref = db.collection('ProductionForecasts').document(doc_id)
+            # Attempt to get the document from Firestore
+            doc_ref = db.collection('ProductionForecasts').document(document_id)
+            doc = doc_ref.get()
+
+            if not doc.exists:
+                return JsonResponse({'error': 'Document not found'}, status=404)
+            
+            # Delete the document from Firestore
             doc_ref.delete()
-            return JsonResponse({"message": "Data deleted successfully"}, status=200)
+            return JsonResponse({'message': 'Document deleted successfully'}, status=200)
         except Exception as e:
-            return JsonResponse({"error": str(e)}, status=400)
-    return JsonResponse({"message": "Only DELETE method is allowed"}, status=405)
+            return JsonResponse({'error': str(e)}, status=500)
+    else:
+        return JsonResponse({'error': 'Invalid HTTP method'}, status=405)
+
+
+@api_view(['GET'])
+def get_production_forecast(request):
+    try:
+        # Fetch all documents from the ProductionForecasts collection
+        production_forecasts_ref = db.collection('ProductionForecasts')
+        docs = production_forecasts_ref.stream()
+        
+        # Create a list to store the document data
+        forecast_data = []
+        
+        # Loop through the documents and get their data
+        for doc in docs:
+            forecast_data.append({
+                'id': doc.id,  # Document ID
+                'data': doc.to_dict()  # Document data
+            })
+        
+        # Return the data as JSON
+        return JsonResponse(forecast_data, safe=False, status=200)
     
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
 
 
 
