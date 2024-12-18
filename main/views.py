@@ -172,6 +172,65 @@ def get_production_forecast(request):
     
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
+    
+@csrf_exempt
+def add_asset_location(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+
+            # Get the current counter value from Firestore
+            counter_ref = db.collection('counters').document('assets_locations_counter')
+            doc = counter_ref.get()
+
+            if doc.exists:
+                current_id = doc.to_dict()['current_id']
+                new_id = current_id + 1
+
+                # Update the counter document
+                counter_ref.update({'current_id': new_id})
+
+                # Custom document ID
+                custom_id = f"AL-{new_id:03d}"  # Format as AL-001, AL-002, etc.
+
+                # Add the document to the AssetsLocations collection
+                db.collection('AssetsLocations').document(custom_id).set(data)
+
+                return JsonResponse({"message": "Asset location added successfully", "id": custom_id}, status=201)
+            else:
+                return JsonResponse({"error": "Counter document not found"}, status=400)
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=400)
+    return JsonResponse({"message": "Only POST method is allowed"}, status=405)
+
+@csrf_exempt
+def delete_asset_location(request, document_id):
+    if request.method == 'DELETE':
+        try:
+            doc_ref = db.collection('AssetsLocations').document(document_id)
+            doc = doc_ref.get()
+
+            if not doc.exists:
+                return JsonResponse({'error': 'Document not found'}, status=404)
+
+            doc_ref.delete()
+            return JsonResponse({'message': 'Asset location deleted successfully'}, status=200)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+    return JsonResponse({'error': 'Invalid HTTP method'}, status=405)
+
+@api_view(['GET'])
+def get_asset_locations(request):
+    try:
+        asset_locations_ref = db.collection('AssetsLocations')
+        docs = asset_locations_ref.stream()
+
+        data = [{'id': doc.id, 'data': doc.to_dict()} for doc in docs]
+
+        return JsonResponse(data, safe=False, status=200)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
 
 
 
