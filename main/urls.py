@@ -2,10 +2,6 @@ from django.urls import path
 from . import views
 from django.http import JsonResponse
 
-def debug_view(request, *args, **kwargs):
-    print(f"Path requested: {request.path}")
-    return JsonResponse({'error': 'Invalid path'}, status=404)
-
 
 urlpatterns = [
     path('', views.home, name='home'),  
@@ -18,6 +14,6 @@ urlpatterns = [
     path('firebase-api/add-asset-location/', views.add_asset_location, name='add_asset_location'),
     path('firebase-api/delete-asset-location/<str:document_id>/', views.delete_asset_location, name='delete_asset_location'),
     path('firebase-api/get-asset-locations/', views.get_asset_locations, name='get_asset_locations'),
-    path('<path:path>', debug_view),  # Catch-all for debugging
+    path('firebase-api/debug-delete-asset-location/<str:document_id>/', views.debug_view, name='debug_delete_asset_location'),
 ]
 

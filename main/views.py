@@ -177,31 +177,50 @@ def get_production_forecast(request):
 def add_asset_location(request):
     if request.method == 'POST':
         try:
+            # Load the data from the request (could be a single asset or a list of assets)
             data = json.loads(request.body)
 
-            # Get the current counter value from Firestore
-            counter_ref = db.collection('counters').document('assets_locations_counter')
-            doc = counter_ref.get()
+            # Check if the data is a list (multiple asset locations)
+            if isinstance(data, list):
+                # Get the current counter value from Firestore
+                counter_ref = db.collection('counters').document('assets_locations_counter')
+                doc = counter_ref.get()
 
-            if doc.exists:
-                current_id = doc.to_dict()['current_id']
-                new_id = current_id + 1
+                if doc.exists:
+                    current_id = doc.to_dict()['current_id']
+                    new_id = current_id
 
-                # Update the counter document
-                counter_ref.update({'current_id': new_id})
+                    response_data = []
+                    for asset in data:
+                        new_id += 1
+                        custom_id = f"AL-{new_id:03d}"  # Format as AL-001, AL-002, etc.
 
-                # Custom document ID
-                custom_id = f"AL-{new_id:03d}"  # Format as AL-001, AL-002, etc.
+                        # Add the asset location document to the AssetsLocations collection
+                        db.collection('AssetsLocations').document(custom_id).set(asset)
 
-                # Add the document to the AssetsLocations collection
-                db.collection('AssetsLocations').document(custom_id).set(data)
+                        response_data.append({
+                            "message": "Asset location added successfully",
+                            "id": custom_id
+                        })
 
-                return JsonResponse({"message": "Asset location added successfully", "id": custom_id}, status=201)
+                    # Update the counter document with the new ID
+                    counter_ref.update({'current_id': new_id})
+
+                    return JsonResponse(response_data, safe=False, status=201)
+                else:
+                    return JsonResponse({"error": "Counter document not found"}, status=400)
             else:
-                return JsonResponse({"error": "Counter document not found"}, status=400)
+                return JsonResponse({"error": "Expected a list of asset locations"}, status=400)
+
+        except json.JSONDecodeError:
+            return JsonResponse({"error": "Invalid JSON format"}, status=400)
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=400)
+
     return JsonResponse({"message": "Only POST method is allowed"}, status=405)
+
+
+
 
 @csrf_exempt
 def delete_asset_location(request, document_id):
@@ -232,6 +251,8 @@ def get_asset_locations(request):
         return JsonResponse({'error': str(e)}, status=500)
 
 
+def debug_view(request, document_id):
+    return JsonResponse({'document_id': document_id}, status=200)
 
 
 
