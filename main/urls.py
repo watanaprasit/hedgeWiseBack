@@ -1,6 +1,5 @@
 from django.urls import path
 from . import views
-from django.http import JsonResponse
 
 
 urlpatterns = [
@@ -13,7 +12,9 @@ urlpatterns = [
     path('firebase-api/get-production-forecast/', views.get_production_forecast, name='get_production_forecast'),
     path('firebase-api/add-asset-location/', views.add_asset_location, name='add_asset_location'),
     path('firebase-api/delete-asset-location/<str:document_id>/', views.delete_asset_location, name='delete_asset_location'),
-    path('firebase-api/get-asset-locations/', views.get_asset_locations, name='get_asset_locations'),
-    path('firebase-api/debug-delete-asset-location/<str:document_id>/', views.debug_view, name='debug_delete_asset_location'),
+    path('firebase-api/get-asset-locations/', views.get_asset_locations, name='get_asset_locations'), 
+    path('firebase-api/add-cashflow-projection/', views.add_cashflow_projection, name='add_cashflow_projection'),
+    path('firebase-api/delete-cashflow-projection/<str:document_id>/', views.delete_cashflow_projection, name='delete_cashflow_projection'),
+    path('firebase-api/get-cashflow-projections/', views.get_cashflow_projections, name='get_cashflow_projections'),
 ]
 

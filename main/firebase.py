@@ -44,10 +44,27 @@ def initialize_asset_locations_counter():
     else:
         # If it exists, log the current value for debugging (optional)
         print(f"AssetsLocations counter exists. Current ID: {doc.to_dict()['current_id']}")
+        
+        
+def initialize_cashflow_projections_counter():
+    counter_ref = db.collection('counters').document('cashflow_projections_counter')
+
+    # Check if the counter document exists
+    doc = counter_ref.get()
+
+    if not doc.exists:
+        # Initialize the counter document with an ID of 1 if it doesn't exist
+        counter_ref.set({
+            'current_id': 1
+        })
+    else:
+        # If it exists, log the current value for debugging (optional)
+        print(f"Cashflow Projections counter exists. Current ID: {doc.to_dict()['current_id']}")
 
 # Initialize the counter when the app is started
 initialize_counter()
 initialize_asset_locations_counter()
+initialize_cashflow_projections_counter()
 
 
 
