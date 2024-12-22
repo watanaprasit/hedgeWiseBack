@@ -14,3 +14,5 @@ Hedgewise is a Django-based application designed to help treasurers manage FX ri
   - 
 - AI-powered recommendations for the best hedging strategies.
 - Market data integration using free APIs.
+
+## Tech Stack

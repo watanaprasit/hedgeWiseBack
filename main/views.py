@@ -118,10 +118,11 @@ def add_production_row(request):
 
                 # Add the document with the custom ID to the ProductionForecasts collection
                 doc_ref = db.collection('ProductionForecasts').document(custom_id).set(data)
-                
+
                 return JsonResponse({"message": "Data added successfully", "id": custom_id}, status=201)
             else:
                 return JsonResponse({"error": "Counter document not found"}, status=400)
+        
         except json.JSONDecodeError:
             return JsonResponse({"error": "Invalid JSON format"}, status=400)
         except Exception as e:
@@ -392,6 +393,33 @@ def get_forward_contracts(request):
         return JsonResponse(data, safe=False, status=200)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
+    
+    
+@csrf_exempt
+def modify_cashflow_projection(request, document_id):
+    if request.method == 'PUT':  # Use PUT for updating an existing resource
+        try:
+            # Load the data from the request body
+            data = json.loads(request.body)
+
+            # Check if the document exists in the Firestore collection
+            doc_ref = db.collection('CashflowProjections').document(document_id)
+            doc = doc_ref.get()
+
+            if not doc.exists:
+                return JsonResponse({'error': 'Document not found'}, status=404)
+
+            # Update the document with the new data
+            doc_ref.update(data)
+
+            return JsonResponse({'message': 'Cashflow Projection updated successfully', 'id': document_id}, status=200)
+        except json.JSONDecodeError:
+            return JsonResponse({"error": "Invalid JSON format"}, status=400)
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=400)
+
+    return JsonResponse({'error': 'Invalid HTTP method, only PUT allowed'}, status=405)
+
     
 
 
