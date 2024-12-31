@@ -420,7 +420,77 @@ def modify_cashflow_projection(request, document_id):
 
     return JsonResponse({'error': 'Invalid HTTP method, only PUT allowed'}, status=405)
 
-    
+
+@csrf_exempt
+def add_futures_contract(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+
+            if isinstance(data, list):
+                counter_ref = db.collection('counters').document('futures_contracts_counter')
+                doc = counter_ref.get()
+
+                if doc.exists:
+                    current_id = doc.to_dict()['current_id']
+                    new_id = current_id
+
+                    response_data = []
+                    for asset in data:
+                        new_id += 1
+                        custom_id = f"FC-{new_id:03d}" 
+
+                        db.collection('FuturesContracts').document(custom_id).set(asset)
+
+                        response_data.append({
+                            "message": "Futures Contract added successfully",
+                            "id": custom_id
+                        })
+
+                    counter_ref.update({'current_id': new_id})
+
+                    return JsonResponse(response_data, safe=False, status=201)
+                else:
+                    return JsonResponse({"error": "Counter document not found"}, status=400)
+            else:
+                return JsonResponse({"error": "Expected a list of futures contracts"}, status=400)
+
+        except json.JSONDecodeError:
+            return JsonResponse({"error": "Invalid JSON format"}, status=400)
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=400)
+
+    return JsonResponse({"message": "Only POST method is allowed"}, status=405)
+
+
+@csrf_exempt
+def delete_futures_contract(request, document_id):
+    if request.method == 'DELETE':
+        try:
+            doc_ref = db.collection('FuturesContracts').document(document_id)
+            doc = doc_ref.get()
+
+            if not doc.exists:
+                return JsonResponse({'error': 'Document not found'}, status=404)
+
+            doc_ref.delete()
+            return JsonResponse({'message': 'Futures Contract deleted successfully'}, status=200)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+    return JsonResponse({'error': 'Invalid HTTP method'}, status=405)
+
+
+@api_view(['GET'])
+def get_futures_contracts(request):
+    try:
+        asset_locations_ref = db.collection('FuturesContracts')
+        docs = asset_locations_ref.stream()
+
+        data = [{'id': doc.id, 'data': doc.to_dict()} for doc in docs]
+
+        return JsonResponse(data, safe=False, status=200)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
 
 
 def debug_view(request, document_id):
