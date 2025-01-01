@@ -12,21 +12,64 @@ from django.http import HttpResponse, JsonResponse
 from .firebase import db  # Import the Firestore client from firebase.py
 from django.views.decorators.csrf import csrf_exempt
 import json
+import yfinance as yf
+
+
+# Function to fetch and update currency data from Yahoo Finance
+def fetch_currency_data():
+    # Example: fetch exchange rates for currency pairs like 'EURUSD=X'
+    currency_pairs = ['EURUSD=X', 'GBPUSD=X', 'USDJPY=X']  # Add your required currency pairs here
+    currency_data = []
+
+    for pair in currency_pairs:
+        # Fetch data using yfinance
+        ticker = yf.Ticker(pair)
+        hist = ticker.history(period="1d")
+        
+        # Extract necessary data
+        if not hist.empty:
+            data = hist.iloc[0]
+            currency_data.append({
+                'currency_pair': pair,
+                'open_price': data['Open'],
+                'high_price': data['High'],
+                'low_price': data['Low'],
+                'close_price': data['Close'],
+                'volume': data['Volume'],
+                'date': timezone.now()  # You may want to adjust this to match your actual date range
+            })
+
+    return currency_data
 
 # View for the homepage to display the historical data for all currency pairs
 def home(request):
     end_time = timezone.now()
     start_time = end_time - timedelta(days=30)  # Get data for the last 30 days
 
-    # Retrieve data for all currency pairs
-    currency_data = CurrencyData.objects.filter(
+    # Fetch currency data from Yahoo Finance and update database
+    currency_data = fetch_currency_data()
+
+    # Update database with new data (if necessary)
+    for data in currency_data:
+        CurrencyData.objects.create(
+            currency_pair=data['currency_pair'],
+            open_price=data['open_price'],
+            high_price=data['high_price'],
+            low_price=data['low_price'],
+            close_price=data['close_price'],
+            volume=data['volume'],
+            date=data['date']
+        )
+
+    # Retrieve data from the database for the last 30 days
+    currency_data_db = CurrencyData.objects.filter(
         date__gte=start_time,
         date__lte=end_time
     ).order_by('currency_pair', 'date')
 
     # Group the data by currency pair
     grouped_data = {}
-    for key, group in groupby(currency_data, lambda x: x.currency_pair):
+    for key, group in groupby(currency_data_db, lambda x: x.currency_pair):
         grouped_data[key] = list(group)
 
     # Round decimal fields to 3 places
@@ -45,21 +88,54 @@ def home(request):
     return render(request, 'home.html', context)
 
 
-# API endpoint to return all currency data as JSON
+# API endpoint to return only the latest close data for each currency pair
 @api_view(['GET'])
 def get_currency_data(request):
     end_time = timezone.now()
     start_time = end_time - timedelta(days=30)
 
-    # Retrieve data for all currency pairs
-    currency_data = CurrencyData.objects.filter(
+    # Fetch currency data from Yahoo Finance and update database
+    currency_data = fetch_currency_data()
+
+    # Update database with new data (if necessary)
+    for data in currency_data:
+        CurrencyData.objects.create(
+            currency_pair=data['currency_pair'],
+            open_price=data['open_price'],
+            high_price=data['high_price'],
+            low_price=data['low_price'],
+            close_price=data['close_price'],
+            volume=data['volume'],
+            date=data['date']
+        )
+
+    # Retrieve the most recent close prices for each currency pair
+    latest_data = []
+    currency_pairs = CurrencyData.objects.filter(
         date__gte=start_time,
         date__lte=end_time
-    ).order_by('currency_pair', 'date')
+    ).values('currency_pair').distinct()
 
-    # Serialize and return the data
-    serializer = CurrencyDataSerializer(currency_data, many=True)
-    return Response(serializer.data)
+    for pair in currency_pairs:
+        # Fetch the latest data for each currency pair
+        latest_entry = CurrencyData.objects.filter(currency_pair=pair['currency_pair']) \
+            .order_by('-date').first()
+
+        if latest_entry:
+            latest_data.append({
+                'currency_pair': latest_entry.currency_pair,
+                'open_price': latest_entry.open_price,
+                'high_price': latest_entry.high_price,
+                'low_price': latest_entry.low_price,
+                'close_price': latest_entry.close_price,
+                'volume': latest_entry.volume,
+                'date': latest_entry.date
+            })
+
+    # Serialize and return only the latest close data for each currency pair
+    return Response(latest_data)
+
+
 
 # API endpoint for Brent Crude data
 @api_view(['GET'])
