@@ -6,13 +6,16 @@ from itertools import groupby
 from decimal import Decimal, ROUND_DOWN
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from .serializers import CurrencyDataSerializer, BrentCrudeDataSerializer, GeopoliticalNewsSerializer
+from .serializers import BrentCrudeDataSerializer, GeopoliticalNewsSerializer
 from django.db.models import Q
-from django.http import HttpResponse, JsonResponse
-from .firebase import db  # Import the Firestore client from firebase.py
+from django.http import JsonResponse
+from .firebase import db  
 from django.views.decorators.csrf import csrf_exempt
+from django.conf import settings
 import json
 import yfinance as yf
+import requests
+
 
 
 # Function to fetch and update currency data from Yahoo Finance
@@ -153,20 +156,51 @@ def get_brent_crude_data(request):
     return Response(serializer.data)
 
 
+
 # API endpoint for Geopolitical news
 @api_view(['GET'])
 def get_geopolitical_news(request):
-    keywords = ['']  # Define your search keywords
+    # Refined keywords for oil & gas news
+    keywords = [
+        "oil",
+        "gas",
+        "energy",
+        "petroleum",
+        "OPEC",
+        "Brent crude",
+        "natural gas",
+        "crude oil"
+    ]
+    
+    query = " OR ".join(keywords)
+    
+   
+    api_key = settings.NEWSAPI_KEY
+    base_url = "https://newsapi.org/v2/everything" 
 
-    # Build the query for filtering based on the keywords
-    query = Q(title__icontains=keywords[0])
-    for keyword in keywords[1:]:
-        query |= Q(title__icontains=keyword)
+    # Request parameters
+    params = {
+        "q": query,  # Search query for oil & gas topics
+        "qInTitle": query,  # Limit the search to titles only
+        "apiKey": api_key,
+        "language": "en",  
+        "sortBy": "publishedAt",  
+        "pageSize": 5,  
+        "domains": "bloomberg.com,ft.com,reuters.com,oilprice.com,rigzone.com,energyvoice.com,marketwatch.com,cnbc.com"  
+    }
 
-    # Retrieve and return news data
-    news_data = GeopoliticalNews.objects.filter(query).order_by('-published_at')[:20]
-    serializer = GeopoliticalNewsSerializer(news_data, many=True)
-    return Response(serializer.data)
+    # Fetch data from NewsAPI
+    response = requests.get(base_url, params=params)
+
+    if response.status_code == 200:
+        news_data = response.json().get("articles", [])
+    else:
+        news_data = []
+
+    # Return the news data
+    return Response(news_data)
+
+
 
 @csrf_exempt
 def add_production_row(request):
