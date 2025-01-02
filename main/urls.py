@@ -24,6 +24,7 @@ urlpatterns = [
     
     path(f'{FIREBASE_API_BASE}/add-forward-contract/', views.add_forward_contract, name='add_forward_contract'),
     path(f'{FIREBASE_API_BASE}/delete-forward-contract/<str:document_id>/', views.delete_forward_contract, name='delete_forward_contract'),
+    path(f'{FIREBASE_API_BASE}/delete-all-forward-contracts/', views.delete_all_forward_contracts, name='delete_all_forward_contracts'),
     path(f'{FIREBASE_API_BASE}/get-forward-contracts/', views.get_forward_contracts, name='get_forward_contracts'),
     
     path(f'{FIREBASE_API_BASE}/add-futures-contract/', views.add_futures_contract, name='add_futures_contract'),

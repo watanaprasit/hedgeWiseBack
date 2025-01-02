@@ -457,6 +457,29 @@ def delete_forward_contract(request, document_id):
             return JsonResponse({'error': str(e)}, status=500)
     return JsonResponse({'error': 'Invalid HTTP method'}, status=405)
 
+@csrf_exempt
+def delete_all_forward_contracts(request):
+    if request.method == 'DELETE':
+        try:
+            # Get all documents in the 'ForwardContracts' collection
+            forward_contracts_ref = db.collection('ForwardContracts')
+            docs = forward_contracts_ref.stream()
+
+            # Check if there are any documents to delete
+            if not any(docs):
+                return JsonResponse({'error': 'No forward contracts found to delete'}, status=404)
+
+            # Iterate over each document and delete it
+            for doc in docs:
+                doc.reference.delete()
+
+            return JsonResponse({'message': 'All Forward Contracts deleted successfully'}, status=200)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+    
+    return JsonResponse({'error': 'Invalid HTTP method'}, status=405)
+
+
 
 @api_view(['GET'])
 def get_forward_contracts(request):
