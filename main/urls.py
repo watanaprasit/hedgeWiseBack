@@ -30,6 +30,10 @@ urlpatterns = [
     path(f'{FIREBASE_API_BASE}/add-futures-contract/', views.add_futures_contract, name='add_futures_contract'),
     path(f'{FIREBASE_API_BASE}/delete-futures-contract/<str:document_id>/', views.delete_futures_contract, name='delete_futures_contract'),
     path(f'{FIREBASE_API_BASE}/get-futures-contracts/', views.get_futures_contracts, name='get_futures_contracts'),
+    
+    path(f'{FIREBASE_API_BASE}/add-PRI/', views.add_PRI, name='add_PRI'),
+    path(f'{FIREBASE_API_BASE}/delete-PRI/<str:document_id>/', views.delete_PRI, name='delete_PRI'),
+    path(f'{FIREBASE_API_BASE}/get-PRIs/', views.get_PRIs, name='get_PRIs'),
 ]
 
 

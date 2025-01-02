@@ -626,6 +626,77 @@ def get_futures_contracts(request):
         return JsonResponse({'error': str(e)}, status=500)
 
 
+@csrf_exempt
+def add_PRI(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+
+            if isinstance(data, list):
+                counter_ref = db.collection('counters').document('PRIs_counter')
+                doc = counter_ref.get()
+
+                if doc.exists:
+                    current_id = doc.to_dict()['current_id']
+                    new_id = current_id
+
+                    response_data = []
+                    for pri_entry in data:
+                        new_id += 1
+                        custom_id = f"PRI-{new_id:03d}"
+
+                        db.collection('PRIs').document(custom_id).set(pri_entry)
+
+                        response_data.append({
+                            "message": "PRI entry added successfully",
+                            "id": custom_id
+                        })
+
+                    counter_ref.update({'current_id': new_id})
+
+                    return JsonResponse(response_data, safe=False, status=201)
+                else:
+                    return JsonResponse({"error": "Counter document not found"}, status=400)
+            else:
+                return JsonResponse({"error": "Expected a list of PRI entries"}, status=400)
+
+        except json.JSONDecodeError:
+            return JsonResponse({"error": "Invalid JSON format"}, status=400)
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=400)
+
+    return JsonResponse({"message": "Only POST method is allowed"}, status=405)
+
+
+@csrf_exempt
+def delete_PRI(request, document_id):
+    if request.method == 'DELETE':
+        try:
+            doc_ref = db.collection('PRIs').document(document_id)
+            doc = doc_ref.get()
+
+            if not doc.exists:
+                return JsonResponse({'error': 'Document not found'}, status=404)
+
+            doc_ref.delete()
+            return JsonResponse({'message': 'PRI entry deleted successfully'}, status=200)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+    return JsonResponse({'error': 'Invalid HTTP method'}, status=405)
+
+
+@api_view(['GET'])
+def get_PRIs(request):
+    try:
+        pri_ref = db.collection('PRIs')
+        docs = pri_ref.stream()
+
+        data = [{'id': doc.id, 'data': doc.to_dict()} for doc in docs]
+
+        return JsonResponse(data, safe=False, status=200)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
 def debug_view(request, document_id):
     return JsonResponse({'document_id': document_id}, status=200)
 
