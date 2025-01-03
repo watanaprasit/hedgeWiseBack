@@ -143,17 +143,17 @@ def get_currency_data(request):
 # API endpoint for Brent Crude data
 @api_view(['GET'])
 def get_brent_crude_data(request):
-    end_time = timezone.now()
-    start_time = end_time - timedelta(days=30)
-
-    # Retrieve Brent Crude data
-    brent_crude_data = BrentCrudeData.objects.filter(
-        date__gte=start_time,
-        date__lte=end_time
-    ).order_by('date')
-
-    serializer = BrentCrudeDataSerializer(brent_crude_data, many=True)
-    return Response(serializer.data)
+    try:
+        # Retrieve the latest BZ=F data from yfinance
+        ticker = yf.Ticker("BZ=F")
+        hist = ticker.history(period="1d")
+        
+        # Get the latest closing price
+        latest_close = hist["Close"].iloc[-1]
+        
+        return Response({"latest_closing_price": latest_close})
+    except Exception as e:
+        return Response({"error": str(e)}, status=500)
 
 
 
