@@ -7,7 +7,13 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Initialize Firebase
-cred = credentials.Certificate(os.getenv('FIREBASE_KEY_PATH'))
+
+cred = credentials.Certificate('/etc/secrets/firebase_key.json')
+
+#copy and paste back if does not work
+# cred = credentials.Certificate(os.getenv('FIREBASE_KEY_PATH'))
+
+
 if not firebase_admin._apps:
     firebase_admin.initialize_app(cred)
 
