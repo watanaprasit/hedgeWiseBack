@@ -16,7 +16,29 @@ import json
 import yfinance as yf
 import requests
 
+from firebase_admin import auth
+import firebase_admin
+from firebase_admin import credentials
 
+cred = credentials.Certificate(os.getenv('FIREBASE_KEY_PATH'))
+
+if not firebase_admin._apps:
+    firebase_admin.initialize_app(cred)
+
+@csrf_exempt
+def verify_firebase_token(request):
+    # Get the Firebase ID token from the request
+    firebase_token = request.headers.get('Authorization').split('Bearer ')[-1]
+
+    try:
+        # Verify the Firebase ID token
+        decoded_token = auth.verify_id_token(firebase_token)
+        user_id = decoded_token['uid']
+        
+        # Return user information
+        return JsonResponse({"status": "success", "user_id": user_id})
+    except Exception as e:
+        return JsonResponse({"status": "error", "message": str(e)})
 
 # Function to fetch and update currency data from Yahoo Finance
 def fetch_currency_data():
