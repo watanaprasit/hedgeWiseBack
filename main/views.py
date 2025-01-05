@@ -21,10 +21,63 @@ import firebase_admin
 from firebase_admin import credentials
 import os
 
+from .firebase import create_user, delete_user, get_user_by_email, get_user_by_uid
+
+
 cred = credentials.Certificate(os.getenv('FIREBASE_KEY_PATH'))
 
 if not firebase_admin._apps:
     firebase_admin.initialize_app(cred)
+    
+    
+@csrf_exempt
+def create_firebase_user(request):
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        
+        if not email or not password:
+            return JsonResponse({'error': 'Email and password are required.'}, status=400)
+        
+        result = create_user(email, password)
+        return JsonResponse({'message': result})
+    
+    return JsonResponse({'error': 'Invalid method. POST required.'}, status=405)
+
+# Delete Firebase user by UID (POST request expected with UID)
+@csrf_exempt
+def delete_firebase_user(request):
+    if request.method == 'POST':
+        uid = request.POST.get('uid')
+        
+        if not uid:
+            return JsonResponse({'error': 'UID is required.'}, status=400)
+        
+        result = delete_user(uid)
+        return JsonResponse({'message': result})
+    
+    return JsonResponse({'error': 'Invalid method. POST required.'}, status=405)
+
+# Get Firebase user details by email (GET request expected with email)
+def get_firebase_user_by_email(request):
+    email = request.GET.get('email')
+    
+    if not email:
+        return JsonResponse({'error': 'Email is required.'}, status=400)
+    
+    user_details = get_user_by_email(email)
+    return JsonResponse({'user': user_details})
+    
+# Get Firebase user details by UID (GET request expected with UID)
+def get_firebase_user_by_uid(request):
+    uid = request.GET.get('uid')
+    
+    if not uid:
+        return JsonResponse({'error': 'UID is required.'}, status=400)
+    
+    user_details = get_user_by_uid(uid)
+    return JsonResponse({'user': user_details})
+
 
 @csrf_exempt
 def verify_firebase_token(request):
@@ -724,19 +777,3 @@ def get_PRIs(request):
 
 def debug_view(request, document_id):
     return JsonResponse({'document_id': document_id}, status=200)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

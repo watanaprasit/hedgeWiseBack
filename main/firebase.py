@@ -1,5 +1,5 @@
 import firebase_admin
-from firebase_admin import credentials, firestore
+from firebase_admin import credentials, firestore, auth
 import os
 from dotenv import load_dotenv
 
@@ -69,7 +69,49 @@ initialize_cashflow_projections_counter()
 initialize_forward_contracts_counter()
 
 
+# Firebase Authentication Functions
 
+# Create a Firebase user
+def create_user(email, password):
+    try:
+        user = auth.create_user(email=email, password=password)
+        return f"User created successfully with UID: {user.uid}"
+    except Exception as e:
+        return f"Error creating user: {str(e)}"
+
+# Delete a Firebase user by UID
+def delete_user(uid):
+    try:
+        auth.delete_user(uid)
+        return f"User with UID {uid} deleted successfully."
+    except Exception as e:
+        return f"Error deleting user: {str(e)}"
+
+# Get user details by email
+def get_user_by_email(email):
+    try:
+        user = auth.get_user_by_email(email)
+        return {
+            'uid': user.uid,
+            'email': user.email,
+            'display_name': user.display_name,
+            'photo_url': user.photo_url
+        }
+    except Exception as e:
+        return f"Error retrieving user: {str(e)}"
+
+# Get user details by UID
+def get_user_by_uid(uid):
+    try:
+        user = auth.get_user(uid)
+        return {
+            'uid': user.uid,
+            'email': user.email,
+            'display_name': user.display_name,
+            'photo_url': user.photo_url
+        }
+    except Exception as e:
+        return f"Error retrieving user: {str(e)}"
 
 
 

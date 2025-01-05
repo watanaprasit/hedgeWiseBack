@@ -11,6 +11,11 @@ urlpatterns = [
     
     #auth
     path('verify-firebase-token/', views.verify_firebase_token, name='verify_firebase_token'),
+    
+    path('create-firebase-user/', views.create_firebase_user, name='create_firebase_user'),
+    path('delete-firebase-user/', views.delete_firebase_user, name='delete_firebase_user'),
+    path('get-firebase-user-by-email/', views.get_firebase_user_by_email, name='get_firebase_user_by_email'),
+    path('get-firebase-user-by-uid/', views.get_firebase_user_by_uid, name='get_firebase_user_by_uid'),
 
     
     path(f'{FIREBASE_API_BASE}/add-production-row/', views.add_production_row, name='add_production_row'),
