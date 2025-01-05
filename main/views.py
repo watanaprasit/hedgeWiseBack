@@ -19,6 +19,7 @@ import requests
 from firebase_admin import auth
 import firebase_admin
 from firebase_admin import credentials
+import os
 
 cred = credentials.Certificate(os.getenv('FIREBASE_KEY_PATH'))
 
