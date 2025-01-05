@@ -167,13 +167,15 @@ def get_currency_data(request):
 @api_view(['GET'])
 def get_brent_crude_data(request):
     try:
-        # Retrieve the latest BZ=F data from yfinance
         ticker = yf.Ticker("BZ=F")
-        hist = ticker.history(period="1d")
-        
-        # Get the latest closing price
-        latest_close = hist["Close"].iloc[-1]
-        
+        hist = ticker.history(period="5d")
+
+        if hist.empty:
+            return Response({"error": "No data available for Brent Crude"}, status=404)
+
+        # Get the latest available closing price
+        latest_close = hist["Close"].dropna().iloc[-1]
+
         return Response({"latest_closing_price": latest_close})
     except Exception as e:
         return Response({"error": str(e)}, status=500)
