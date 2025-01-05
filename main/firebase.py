@@ -1,3 +1,6 @@
+from firebase_admin import auth
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
 import firebase_admin
 from firebase_admin import credentials, firestore
 import os
@@ -12,6 +15,25 @@ if not firebase_admin._apps:
     firebase_admin.initialize_app(cred)
 
 db = firestore.client()
+
+
+@csrf_exempt
+def verify_firebase_token(request):
+    # Get the Firebase ID token from the request
+    firebase_token = request.headers.get('Authorization').split('Bearer ')[-1]
+
+    try:
+        # Verify the Firebase ID token
+        decoded_token = auth.verify_id_token(firebase_token)
+        user_id = decoded_token['uid']
+        
+        # Return user information
+        return JsonResponse({"status": "success", "user_id": user_id})
+    except Exception as e:
+        return JsonResponse({"status": "error", "message": str(e)})
+
+
+
 
 def initialize_counter():
     counter_ref = db.collection('counters').document('production_forecasts_counter')
