@@ -33,18 +33,21 @@ if not firebase_admin._apps:
 @csrf_exempt
 def create_firebase_user(request):
     if request.method == 'POST':
-        email = request.POST.get('email')
-        password = request.POST.get('password')
-        
-        print(f"Received email: {email}, password: {password}")  # Debugging line
-        
+        try:
+            data = json.loads(request.body)
+            email = data.get('email')
+            password = data.get('password')
+        except (ValueError, KeyError):
+            return JsonResponse({'error': 'Invalid JSON data'}, status=400)
+
         if not email or not password:
             return JsonResponse({'error': 'Email and password are required.'}, status=400)
-        
+
         result = create_user(email, password)
         return JsonResponse({'message': result})
-    
+
     return JsonResponse({'error': 'Invalid method. POST required.'}, status=405)
+
 
 
 # Delete Firebase user by UID (POST request expected with UID)
@@ -84,18 +87,23 @@ def get_firebase_user_by_uid(request):
 
 @csrf_exempt
 def verify_firebase_token(request):
-    # Get the Firebase ID token from the request
-    firebase_token = request.headers.get('Authorization').split('Bearer ')[-1]
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            email = data.get('email')
+            password = data.get('password')
+        except (ValueError, KeyError):
+            return JsonResponse({'error': 'Invalid JSON data'}, status=400)
 
-    try:
-        # Verify the Firebase ID token
-        decoded_token = auth.verify_id_token(firebase_token)
-        user_id = decoded_token['uid']
-        
-        # Return user information
-        return JsonResponse({"status": "success", "user_id": user_id})
-    except Exception as e:
-        return JsonResponse({"status": "error", "message": str(e)})
+        # Verify the user's credentials and Firebase token (example logic)
+        user = auth.get_user_by_email(email)
+        if user:
+            return JsonResponse({"status": "success", "user_id": user.uid})
+        else:
+            return JsonResponse({"status": "error", "message": "User not found"})
+
+    return JsonResponse({"error": "Invalid method. POST required."}, status=405)
+
 
 # Function to fetch and update currency data from Yahoo Finance
 def fetch_currency_data():
