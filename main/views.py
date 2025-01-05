@@ -36,6 +36,8 @@ def create_firebase_user(request):
         email = request.POST.get('email')
         password = request.POST.get('password')
         
+        print(f"Received email: {email}, password: {password}")  # Debugging line
+        
         if not email or not password:
             return JsonResponse({'error': 'Email and password are required.'}, status=400)
         
@@ -43,6 +45,7 @@ def create_firebase_user(request):
         return JsonResponse({'message': result})
     
     return JsonResponse({'error': 'Invalid method. POST required.'}, status=405)
+
 
 # Delete Firebase user by UID (POST request expected with UID)
 @csrf_exempt
