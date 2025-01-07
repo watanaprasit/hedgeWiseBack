@@ -1,18 +1,18 @@
 # Hedgewise App
 
-Hedgewise is a Django-based application designed to help treasurers manage FX risks effectively. It analyzes market data, assesses a company's risk exposure, and provides optimal hedging strategies.
+Hedgewise App - Backend
 
-## Features
+Hedgewise is a Django-based application designed to help treasurers manage FX risks effectively. It analyzes market data, assesses a company's risk exposure, and provides optimal hedging strategies. The backend handles the processing of market data, risk analysis, and AI-powered recommendations for hedging strategies.
 
-- Dashboard displaying:
-  - Company risk profile
-  - Key market news
-  - Current hedging exposures
-- Separate risk analysis pages for:
-  - Currency (FX) risk
-  - Commodity risk
-  - 
-- AI-powered recommendations for the best hedging strategies.
-- Market data integration using free APIs.
+Market data integration using free APIs to provide real-time data on currency fluctuations, commodity prices, and geopolitical news.
+
+Real-time risk assessment for treasurers to assess current exposure and choose the best hedging instrument.
 
 ## Tech_Stack
+
+Django
+Django REST Framework (DRF)
+FastAPI
+PostgreSQL
+pandas
+scikit-learn
