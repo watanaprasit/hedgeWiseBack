@@ -3,7 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Currency Data</title>
+    <title>HedgeWise</title>
+    {% load static %}
+    <link rel="icon" href="{% static 'images/HedgeWiseFavicon.ico' %}" type="image/x-icon">
+</head>
 </head>
 <body>
     <h1>All Currency Data</h1>
@@ -19,7 +22,6 @@
                         <th>High Price</th>
                         <th>Low Price</th>
                         <th>Close Price</th>
-                        <th>Volume</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -30,7 +32,6 @@
                         <td>{{ entry.high_price }}</td>
                         <td>{{ entry.low_price }}</td>
                         <td>{{ entry.close_price }}</td>
-                        <td>{{ entry.volume }}</td>
                     </tr>
                     {% empty %}
                     <tr>
