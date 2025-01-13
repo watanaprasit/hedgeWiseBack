@@ -68,10 +68,6 @@ initialize_asset_locations_counter()
 initialize_cashflow_projections_counter()
 initialize_forward_contracts_counter()
 
-
-# Firebase Authentication Functions
-
-# Create a Firebase user
 def create_user(email, password):
     try:
         user = auth.create_user(email=email, password=password)
@@ -79,7 +75,6 @@ def create_user(email, password):
     except Exception as e:
         return f"Error creating user: {str(e)}"
 
-# Delete a Firebase user by UID
 def delete_user(uid):
     try:
         auth.delete_user(uid)
@@ -87,7 +82,6 @@ def delete_user(uid):
     except Exception as e:
         return f"Error deleting user: {str(e)}"
 
-# Get user details by email
 def get_user_by_email(email):
     try:
         user = auth.get_user_by_email(email)
@@ -100,7 +94,6 @@ def get_user_by_email(email):
     except Exception as e:
         return f"Error retrieving user: {str(e)}"
 
-# Get user details by UID
 def get_user_by_uid(uid):
     try:
         user = auth.get_user(uid)

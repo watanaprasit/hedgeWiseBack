@@ -267,10 +267,9 @@ def get_geopolitical_news(request):
     api_key = settings.NEWSAPI_KEY
     base_url = "https://newsapi.org/v2/everything" 
 
-    # Request parameters
     params = {
-        "q": query,  # Search query for oil & gas topics
-        "qInTitle": query,  # Limit the search to titles only
+        "q": query, 
+        "qInTitle": query,  
         "apiKey": api_key,
         "language": "en",  
         "sortBy": "publishedAt",  
@@ -278,7 +277,6 @@ def get_geopolitical_news(request):
         "domains": "bloomberg.com,ft.com,reuters.com,oilprice.com,rigzone.com,energyvoice.com,marketwatch.com,cnbc.com"  
     }
 
-    # Fetch data from NewsAPI
     response = requests.get(base_url, params=params)
 
     if response.status_code == 200:
@@ -286,7 +284,6 @@ def get_geopolitical_news(request):
     else:
         news_data = []
 
-    # Return the news data
     return Response(news_data)
 
 
