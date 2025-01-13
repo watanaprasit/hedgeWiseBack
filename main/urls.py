@@ -9,7 +9,6 @@ urlpatterns = [
     path('api/brent-crude-data/', views.get_brent_crude_data, name='brent_crude_data'),    
     path('api/geopolitical-risk-data/', views.get_geopolitical_news, name='geopolitical-risk-data'),
     
-    #auth
     path('verify-firebase-token/', views.verify_firebase_token, name='verify_firebase_token'),
     
     path('create-firebase-user/', views.create_firebase_user, name='create_firebase_user'),
