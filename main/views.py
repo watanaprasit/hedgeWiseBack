@@ -48,9 +48,6 @@ def create_firebase_user(request):
 
     return JsonResponse({'error': 'Invalid method. POST required.'}, status=405)
 
-
-
-# Delete Firebase user by UID (POST request expected with UID)
 @csrf_exempt
 def delete_firebase_user(request):
     if request.method == 'POST':
@@ -64,7 +61,6 @@ def delete_firebase_user(request):
     
     return JsonResponse({'error': 'Invalid method. POST required.'}, status=405)
 
-# Get Firebase user details by email (GET request expected with email)
 def get_firebase_user_by_email(request):
     email = request.GET.get('email')
     
@@ -74,7 +70,6 @@ def get_firebase_user_by_email(request):
     user_details = get_user_by_email(email)
     return JsonResponse({'user': user_details})
     
-# Get Firebase user details by UID (GET request expected with UID)
 def get_firebase_user_by_uid(request):
     uid = request.GET.get('uid')
     
@@ -105,18 +100,14 @@ def verify_firebase_token(request):
     return JsonResponse({"error": "Invalid method. POST required."}, status=405)
 
 
-# Function to fetch and update currency data from Yahoo Finance
 def fetch_currency_data():
-    # Example: fetch exchange rates for currency pairs like 'EURUSD=X'
     currency_pairs = ['EURUSD=X', 'GBPUSD=X', 'USDJPY=X']  # Add your required currency pairs here
     currency_data = []
 
     for pair in currency_pairs:
-        # Fetch data using yfinance
         ticker = yf.Ticker(pair)
         hist = ticker.history(period="1d")
         
-        # Extract necessary data
         if not hist.empty:
             data = hist.iloc[0]
             currency_data.append({
@@ -131,15 +122,12 @@ def fetch_currency_data():
 
     return currency_data
 
-# View for the homepage to display the historical data for all currency pairs
 def home(request):
     end_time = timezone.now()
     start_time = end_time - timedelta(days=30)  # Get data for the last 30 days
 
-    # Fetch currency data from Yahoo Finance and update database
     currency_data = fetch_currency_data()
 
-    # Update database with new data (if necessary)
     for data in currency_data:
         CurrencyData.objects.create(
             currency_pair=data['currency_pair'],
@@ -151,18 +139,15 @@ def home(request):
             date=data['date']
         )
 
-    # Retrieve data from the database for the last 30 days
     currency_data_db = CurrencyData.objects.filter(
         date__gte=start_time,
         date__lte=end_time
     ).order_by('currency_pair', 'date')
 
-    # Group the data by currency pair
     grouped_data = {}
     for key, group in groupby(currency_data_db, lambda x: x.currency_pair):
         grouped_data[key] = list(group)
 
-    # Round decimal fields to 3 places
     for currency_pair, entries in grouped_data.items():
         for entry in entries:
             entry.open_price = Decimal(entry.open_price).quantize(Decimal('0.001'), rounding=ROUND_DOWN)
@@ -178,16 +163,13 @@ def home(request):
     return render(request, 'home.html', context)
 
 
-# API endpoint to return only the latest close data for each currency pair
 @api_view(['GET'])
 def get_currency_data(request):
     end_time = timezone.now()
     start_time = end_time - timedelta(days=30)
 
-    # Fetch currency data from Yahoo Finance and update database
     currency_data = fetch_currency_data()
 
-    # Update database with new data (if necessary)
     for data in currency_data:
         CurrencyData.objects.create(
             currency_pair=data['currency_pair'],
@@ -199,7 +181,6 @@ def get_currency_data(request):
             date=data['date']
         )
 
-    # Retrieve the most recent close prices for each currency pair
     latest_data = []
     currency_pairs = CurrencyData.objects.filter(
         date__gte=start_time,
@@ -207,7 +188,6 @@ def get_currency_data(request):
     ).values('currency_pair').distinct()
 
     for pair in currency_pairs:
-        # Fetch the latest data for each currency pair
         latest_entry = CurrencyData.objects.filter(currency_pair=pair['currency_pair']) \
             .order_by('-date').first()
 
@@ -222,12 +202,10 @@ def get_currency_data(request):
                 'date': latest_entry.date
             })
 
-    # Serialize and return only the latest close data for each currency pair
     return Response(latest_data)
 
 
 
-# API endpoint for Brent Crude data
 @api_view(['GET'])
 def get_brent_crude_data(request):
     try:
@@ -246,10 +224,8 @@ def get_brent_crude_data(request):
 
 
 
-# API endpoint for Geopolitical news
 @api_view(['GET'])
 def get_geopolitical_news(request):
-    # Refined keywords for oil & gas news
     keywords = [
         "oil",
         "gas",
